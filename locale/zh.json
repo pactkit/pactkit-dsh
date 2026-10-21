@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "PactKit 门禁",
+    "description": "在 Bash、Write、Edit 执行前运行 PactKit 门禁，并提供一个调用 pactkit CLI 的工具。"
+  }
+}

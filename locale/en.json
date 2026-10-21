@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "PactKit Gates",
+    "description": "Runs PactKit's pre-tool gate on Bash, Write and Edit before they execute, and adds a pactkit tool for the CLI."
+  }
+}

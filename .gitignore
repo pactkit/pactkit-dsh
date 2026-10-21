@@ -1,0 +1,7 @@
+node_modules/
+*.log
+.DS_Store
+
+# PactKit runtime state: the pre-tool gate writes its receipts here when this
+# repository is the target of a gated command.
+.pactkit/

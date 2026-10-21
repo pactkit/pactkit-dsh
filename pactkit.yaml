@@ -1,0 +1,12 @@
+# Single-maintainer repository.
+#
+# PactKit's gates run against this project — the bundle in this repository
+# dogfoods them, so a commit here runs the mapped tests first. A direct commit
+# on `main` is nonetheless this repository's intended workflow: without this
+# line the default protected-branch policy blocks the initial import and every
+# direct push (`commit-gate: BLOCKED — direct commit on protected branch 'main'`,
+# measured 2026-10-21).
+schema_version: 1
+
+enforcement:
+  allow_direct_push: true

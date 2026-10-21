@@ -1,0 +1,16 @@
+# PactKit governance for DeepSeek Harness.
+#
+# Every key under `config` is optional. Defaults live in lib/options.js and are
+# documented in README.md; a value set here reaches `apply(ctx, config)`.
+#
+#   enforce                  run the pre-tool gate (default: true)
+#   pactkitPath              CLI to spawn, absolute path allowed (default: "pactkit")
+#   gateTimeoutMs            per-gate deadline in ms (default: 300000)
+#   toolTimeoutMs            per-tool-call deadline in ms (default: 120000)
+#   injectContext            add the gate notice to the system prompt (default: true)
+#   denyWhenGateUnavailable  block when the gate cannot run at all (default: false)
+#   extraGatedTools          extra tool names to send through the gate (default: [])
+- insert:
+    - id: pactkit-dsh
+      name: pactkit-dsh
+      config: {}
