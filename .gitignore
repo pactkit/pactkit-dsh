@@ -5,3 +5,12 @@ node_modules/
 # PactKit runtime state: the pre-tool gate writes its receipts here when this
 # repository is the target of a gated command.
 .pactkit/
+
+# Python adapter artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.venv/
