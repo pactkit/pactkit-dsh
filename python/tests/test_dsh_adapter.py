@@ -54,6 +54,24 @@ def test_deploy_writes_the_global_contract(tmp_path):
     assert agents_md.count("<!-- pactkit:start") == 1
 
 
+def test_deploy_writes_the_manifest_doctor_reads(tmp_path):
+    """Without it, `doctor` cannot verify this root: `~/.agents` reads as
+    "deployed outside `pactkit update`" forever (measured 2026-11-03)."""
+    import json
+
+    root = tmp_path / "agents"
+    DshDeployer().deploy(config={}, target=root)
+
+    manifest = json.loads((root / ".pactkit-deployed.json").read_text(encoding="utf-8"))
+    assert manifest["format"] == "dsh"
+    assert "pactkit-analyze" in manifest["skills"]
+    assert manifest["commands"], "command playbooks are components too"
+    # The files this adapter writes outside the component set are declared with
+    # the digest that actually landed, not with a claim about them.
+    assert manifest["artifacts"]["AGENTS.md"]["mode"] == "managed_block"
+    assert len(manifest["artifacts"]["AGENTS.md"]["digest"]) >= 8
+
+
 def test_redeploy_is_idempotent(tmp_path):
     root = tmp_path / "agents"
     DshDeployer().deploy(config={}, target=root)
