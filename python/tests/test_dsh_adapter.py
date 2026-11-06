@@ -52,6 +52,29 @@ def test_deploy_writes_the_global_contract(tmp_path):
     agents_md = (root / "AGENTS.md").read_text(encoding="utf-8")
     assert "PactKit Runtime Contract" in agents_md
     assert agents_md.count("<!-- pactkit:start") == 1
+    # Project-scoped default: a shared pactkit.yaml makes the workflow the
+    # default for changes, and the old blanket opt-in sentence must be gone.
+    assert "pactkit.yaml" in agents_md
+    assert "go through the PactKit workflow" in agents_md
+    assert "skills are opt-in" not in agents_md
+
+
+def test_deploy_writes_the_manifest_doctor_reads(tmp_path):
+    """Without it, `doctor` cannot verify this root: `~/.agents` reads as
+    "deployed outside `pactkit update`" forever (measured 2026-11-03)."""
+    import json
+
+    root = tmp_path / "agents"
+    DshDeployer().deploy(config={}, target=root)
+
+    manifest = json.loads((root / ".pactkit-deployed.json").read_text(encoding="utf-8"))
+    assert manifest["format"] == "dsh"
+    assert "pactkit-analyze" in manifest["skills"]
+    assert manifest["commands"], "command playbooks are components too"
+    # The files this adapter writes outside the component set are declared with
+    # the digest that actually landed, not with a claim about them.
+    assert manifest["artifacts"]["AGENTS.md"]["mode"] == "managed_block"
+    assert len(manifest["artifacts"]["AGENTS.md"]["digest"]) >= 8
 
 
 def test_redeploy_is_idempotent(tmp_path):

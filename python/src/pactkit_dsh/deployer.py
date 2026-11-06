@@ -90,6 +90,24 @@ class DshDeployer(DeployerBase):
 
         agents_md = self._write_agents_md(root, enabled_rules)
 
+        # The manifest is what lets `doctor` verify this root at all. Without it
+        # `~/.agents` reads as "deployed outside `pactkit update`" forever —
+        # measured 2026-11-03, and DSH was the only host with no drift detection
+        # because of it. Declared artifacts are the files this adapter writes
+        # outside the component set; their digests are recorded here.
+        from pactkit.deploy_manifest import write_deploy_manifest
+
+        manifest = write_deploy_manifest(
+            root,
+            "dsh",
+            config,
+            declared_artifacts={
+                "AGENTS.md": "managed_block",
+                "rules/pactkit-runtime.md": "whole_file",
+                "skills/.pactkit-command-manifest.json": "whole_file",
+            },
+        )
+
         return {
             "format": "dsh",
             "root": str(root),
@@ -98,6 +116,7 @@ class DshDeployer(DeployerBase):
             "rules": n_rules,
             "agents": n_agents,
             "agents_md": str(agents_md),
+            "manifest": str(manifest),
         }
 
     def _write_agents_md(self, root: Path, enabled_rules) -> Path:
@@ -119,7 +138,9 @@ class DshDeployer(DeployerBase):
             lines.extend((RULE_DEFINITIONS["runtime"].content.strip(), ""))
         lines.extend(
             (
-                "PactKit skills are opt-in: an ordinary question or coding task does not activate PDCA.",
+                "In a project with a shared `pactkit.yaml`, changes to code, specs, the board, "
+                "or configuration go through the PactKit workflow; ordinary questions and "
+                "reviews stay outside PDCA.",
                 "When a PactKit skill is invoked explicitly, it loads only its phase contract "
                 "and declared shared modules.",
                 "",
