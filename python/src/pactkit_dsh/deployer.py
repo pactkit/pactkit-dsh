@@ -138,7 +138,9 @@ class DshDeployer(DeployerBase):
             lines.extend((RULE_DEFINITIONS["runtime"].content.strip(), ""))
         lines.extend(
             (
-                "PactKit skills are opt-in: an ordinary question or coding task does not activate PDCA.",
+                "In a project with a shared `pactkit.yaml`, changes to code, specs, the board, "
+                "or configuration go through the PactKit workflow; ordinary questions and "
+                "reviews stay outside PDCA.",
                 "When a PactKit skill is invoked explicitly, it loads only its phase contract "
                 "and declared shared modules.",
                 "",

@@ -52,6 +52,11 @@ def test_deploy_writes_the_global_contract(tmp_path):
     agents_md = (root / "AGENTS.md").read_text(encoding="utf-8")
     assert "PactKit Runtime Contract" in agents_md
     assert agents_md.count("<!-- pactkit:start") == 1
+    # Project-scoped default: a shared pactkit.yaml makes the workflow the
+    # default for changes, and the old blanket opt-in sentence must be gone.
+    assert "pactkit.yaml" in agents_md
+    assert "go through the PactKit workflow" in agents_md
+    assert "skills are opt-in" not in agents_md
 
 
 def test_deploy_writes_the_manifest_doctor_reads(tmp_path):
