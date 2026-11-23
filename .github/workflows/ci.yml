@@ -1,0 +1,67 @@
+name: CI
+
+# STORY-slim-202611195fef297b70f8: dsh had zero automation. Python adapter CI on
+# GitHub-hosted runners. STORY-slim-2026112357e873e9d81c wires the Node suite too:
+# the peer dependency @deepseek-ai/dsh-tools >=0.2.1-rc.2 is still unpublished, so
+# the Node job installs a local test stub (test/fixtures/dsh-tools-stub) providing
+# defineTool — enough to exercise index.js host registration without the package.
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Isolated environment
+        run: |
+          python -m venv "$RUNNER_TEMP/pactkit-venv"
+          echo "$RUNNER_TEMP/pactkit-venv/bin" >> "$GITHUB_PATH"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pactkit pyyaml
+          pip install --no-deps -e .
+          pip install pytest
+
+      - name: Report the core version under test
+        run: |
+          python -c "import importlib.metadata as m; print('core under test:', m.version('pactkit'))"
+
+      - name: Run tests
+        env:
+          TMPDIR: ${{ runner.temp }}
+        run: pytest tests/ -v
+
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install local DSH tools stub (unpublished peer dependency)
+        run: npm install --no-save --no-audit --no-fund ./test/fixtures/dsh-tools-stub
+
+      - name: Node test suite (host registration + gate wiring)
+        run: node --test test/*.test.js

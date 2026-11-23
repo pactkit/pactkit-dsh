@@ -1,0 +1,8 @@
+{
+  "name": "@deepseek-ai/dsh-tools",
+  "version": "0.0.0-local-stub",
+  "description": "Local test stub for the unpublished DSH peer dependency. Provides defineTool so index.js host-registration can be tested in CI without the published package (STORY-slim-2026112357e873e9d81c).",
+  "type": "module",
+  "main": "index.js",
+  "private": true
+}
