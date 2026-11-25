@@ -98,3 +98,35 @@ def test_deploy_does_not_touch_the_dsh_home_contract(tmp_path):
     assert "AGENTS.md" in written
     assert not (root / ".dsh").exists()
     assert DshDeployer().profile.global_config_dir != "~/.dsh"
+
+
+def test_global_only_does_not_read_or_write_the_project(tmp_path):
+    """STORY-slim-20261125f4db76f08fc5: a global Host deployment must not read
+    the project config nor write any project file.
+
+    The project restricts skills to a single entry. A global-only deploy with no
+    supplied config must ignore that restriction (full default set) and leave the
+    project byte-identical; the non-global control reads it (restricted set), so
+    the flag is proven to change behavior rather than being a no-op.
+    """
+    proj = tmp_path / "proj"
+    proj.mkdir()
+    (proj / "pactkit.yaml").write_text(
+        "schema_version: 1\nskills:\n  - project-act\n", encoding="utf-8"
+    )
+    before = {p.relative_to(proj): p.read_bytes() for p in proj.rglob("*") if p.is_file()}
+
+    global_root = tmp_path / "global"
+    DshDeployer().deploy(config=None, target=global_root, project_root=proj, global_only=True)
+    assert (global_root / "skills" / "pactkit-analyze").exists(), (
+        "global-only must use the default full set, not the project's restricted skills"
+    )
+    after = {p.relative_to(proj): p.read_bytes() for p in proj.rglob("*") if p.is_file()}
+    assert after == before, "global-only must not write any project file"
+
+    # Positive control: without global_only the project config IS read.
+    project_root = tmp_path / "project"
+    DshDeployer().deploy(config=None, target=project_root, project_root=proj, global_only=False)
+    assert not (project_root / "skills" / "pactkit-analyze").exists(), (
+        "the non-global control must honor the project's restricted skill set"
+    )

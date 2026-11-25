@@ -48,14 +48,28 @@ class DshDeployer(DeployerBase):
     pretool_surface = declarations.PRETOOL_SURFACE
     deployment_claim = declarations.DEPLOYMENT_CLAIM
 
-    def deploy(self, config=None, target=None, project_root=None, no_redetect=False):
+    def deploy(self, config=None, target=None, project_root=None, no_redetect=False,
+               global_only=False):
+        """Deploy PactKit artifacts into the DSH user root (``~/.agents``).
+
+        ``global_only`` (STORY-slim-20261125f4db76f08fc5): a global Host
+        deployment must not read or write any project file. When True, the
+        project config and maintainer overlay reads are skipped and components
+        come from the config Core supplies (the global deploy input). DSH writes
+        only into its user root, so no project write path needs gating beyond
+        these reads.
+        """
         project_root = Path(project_root or Path.cwd()).resolve()
         root = Path(target) if target is not None else Path.home() / ".agents"
 
         if config is None:
-            config, _project_yaml = resolve_deploy_config(project_root, format="dsh")
+            if global_only:
+                config = {}
+            else:
+                config, _project_yaml = resolve_deploy_config(project_root, format="dsh")
         validate_config(config)
-        config = activate_pactkit_maintainer_overlay(config, project_root)
+        if not global_only:
+            config = activate_pactkit_maintainer_overlay(config, project_root)
 
         skills_dir = root / "skills"
         agents_dir = root / "agents"
