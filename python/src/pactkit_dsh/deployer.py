@@ -49,18 +49,25 @@ class DshDeployer(DeployerBase):
     deployment_claim = declarations.DEPLOYMENT_CLAIM
 
     def deploy(self, config=None, target=None, project_root=None, no_redetect=False,
-               global_only=False):
+               global_only=False, project_only=False):
         """Deploy PactKit artifacts into the DSH user root (``~/.agents``).
 
         ``global_only`` (STORY-slim-20261125f4db76f08fc5): a global Host
-        deployment must not read or write any project file. When True, the
-        project config and maintainer overlay reads are skipped and components
-        come from the config Core supplies (the global deploy input). DSH writes
-        only into its user root, so no project write path needs gating beyond
-        these reads.
+        deployment must not read or write any project file. ``project_only``
+        (R3, ``pactkit integrate``): DSH has no project-scope artifacts — all its
+        assets are machine-global — so project-only integration writes nothing
+        and never re-deploys the global components other projects load.
         """
+        if global_only and project_only:
+            raise ValueError("global_only and project_only are mutually exclusive")
         project_root = Path(project_root or Path.cwd()).resolve()
         root = Path(target) if target is not None else Path.home() / ".agents"
+
+        if project_only:
+            # No project-scope artifacts exist for DSH; integration is a no-op
+            # that must not touch the machine-global installation.
+            return {"format": "dsh", "root": str(root), "skills": 0, "commands": 0,
+                    "rules": 0, "agents": 0, "agents_md": None, "manifest": None}
 
         if config is None:
             if global_only:
