@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pactkit-dsh"
-version = "5.0.0"
+version = "5.0.1"
 description = "PactKit adapter for DeepSeek Harness (DSH)"
 readme = "README.md"
 license = { text = "MIT" }
